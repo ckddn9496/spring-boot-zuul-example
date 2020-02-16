@@ -17,6 +17,7 @@ Netflix Zuul을 이용하여 쉽게 Spring환경에서 Reverse Proxy Application
 - 참고자료
     * [예제 프로젝트](https://spring.io/guides/gs/routing-and-filtering/)
     * [Zuul 깃허브](https://github.com/Netflix/zuul)
+    * [배민 API Gateway](https://woowabros.github.io/r&d/2017/06/13/apigateway.html)
     * [참조 블로그](https://jsonobject.tistory.com/464)
 ***
 
@@ -131,7 +132,9 @@ filterType으로는 `pre`, `route`, `post`, `error`가 있으며 이번 예제�
 * `error`: request처리 중 에러가 발생 했을 때
 
 filterOrder는 같은 필터들에 대해 우선순의를 설정한다.
+
 shouldFilter는 해당 필터의 적용 여부를 설정하도록한다.
+
 run은 해당 필터가 수행할 기능을 기술하도록 한다.
 
 Zuul Filter는 리퀘스트와 상태 정보를 저장하여 `RequestContext`에 담고있으며 이것을 `HttpServletRequest`로 받아 `run`에서 사용할 수 있다.
@@ -145,5 +148,20 @@ Zuul Filter는 리퀘스트와 상태 정보를 저장하여 `RequestContext`에
  문자열이 잘 리턴되는 것을 확인할 수 있다.
 
 Zuul Filter를 이용한 리버스 프록시가 잘 등록되었는지 확인해 보자. properties에서 `books`라는 이름으로 프록시를 등록하였고,
-`localhost:8080/books/available`로 접근하면 프록시가 작동한다. `localhost:8090/available`에서 보여진 결과와 같은 결과가 나오는 것을 확인 할 수 있다.
+`localhost:8080/books/available`로 접근하면 프록시가 작동한다.
+run에서 작성한 코드가 실행 되며 해당 request에 대해 메서드와 url를 콘솔에서 확인 할 수 있다.
 
+```
+2020-02-16 14:32:14.341  INFO 24560 --- [nio-8080-exec-1] c.e.r.filters.pre.SimpleFilter           : GET request to http://localhost:8080/books/available
+```
+
+화면에는 `localhost:8090/available`에서 보여진 결과와 같은 결과가 나오는 것을 확인 할 수 있다. 하지만 브라우저의 url은 `localhost:8080/books/available`로 보여진다.
+
+### 정리
+클라이언트 요청은 많은 트래픽과 다양한 형태(예상하지 못한 형태)의 요청으로 경고없이 운영에 이슈를 발생시킨다.
+zuul은 이런한 문제를 신속하고, 동적으로 해결하기 위해서 다양한 형태의 Filter를 실행한다.
+Filter에 기능을 정의하고, 이슈사항에 발생시 적절한 filter을 추가함으로써 이슈사항을 간단하게 대비할 수 있다.
+중복의 제거로 인한 관리 안정성을 확보시켜주며, 서로를 직접 노출 없이 격리함으로서 보안 안정성을 높일 수 있다는 점이 있다.
+
+
+![image](https://woowabros.github.io/img/2017-06-06/Request-Lifecycle.png)
